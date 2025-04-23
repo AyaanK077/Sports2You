@@ -63,3 +63,12 @@ button.dev-bypass {
     background-color: #218838;
   }
   
+  button.danger {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  button.danger:hover {
+    background-color: #c82333;
+  }
+  
