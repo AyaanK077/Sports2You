@@ -1,0 +1,4 @@
+game_id,skill_level_required,location,game_time,creator_id,sport_id
+1,Intermediate,Rec Center - Court A,2025-04-16 17:00:00,1,1
+2,Beginner, Soccer Fields - Field B,2025-04-17 18:00:00,2,2
+3,Advanced,Tennis Court- Court C,2025-04-18 19:00:00,3,3

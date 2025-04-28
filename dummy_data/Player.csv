@@ -1,0 +1,6 @@
+player_id,first_name,last_name,age,username,phone_number,password,email,university_name
+1,Arya,Thombare,20,ast210012,123-456-7890,aryapass,ast210012@utd.edu,UT Dallas
+2,Sanya,Hegde,20,sph210004,234-567-8901,sanyapass,sph210004@utd.edu,UT Dallas
+3,Ayaan,Khan,20,ark220001,345-678-9012,ayaanpass,ark220001@utd.edu,UT Dallas
+4,Aadhav,Manimurugan,20,axm210260,456-789-0123,aadhavpass,axm210260@utd.edu,UT Dallas
+5,Ajay,Kumaran,20,axk210259,567-890-1234,ajaypass,axk210259@utd.edu,UT Dallas
