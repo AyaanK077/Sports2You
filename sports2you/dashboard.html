@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sports2You</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html">
+                    <img src="logo.png" alt="Sports2You Logo" class="logo">
+                </a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span>☰</span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="browse.html">Browse Games</a></li>
+                    <li><a href="availability.html">My Availability</a></li>
+                    <li><a href="#" id="logoutBtn" class="btn btn-secondary">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard container">
+        <div class="dashboard-header">
+            <h1>Welcome, <span id="userName">User</span>!</h1>
+            <p id="userDetails">Username | Email</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-main">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h2 class="dashboard-card-title">My Games</h2>
+                        <a href="create-game.html" class="btn btn-primary">Create New Game</a>
+                    </div>
+                    
+                    <div id="myGamesContainer">
+                        <p class="loading">Loading your games...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-sidebar">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h2 class="dashboard-card-title">My Sports</h2>
+                        <a href="preferred-sports.html" class="btn btn-secondary btn-sm">Edit</a>
+                    </div>
+                    
+                    <div id="mySportsContainer">
+                        <p class="loading">Loading your sports...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h2 class="dashboard-card-title">Quick Links</h2>
+                    <ul class="quick-links">
+                        <li><a href="availability.html">Manage My Availability</a></li>
+                        <li><a href="browse.html">Browse All Games</a></li>
+                        <li><a href="create-game.html">Create New Game</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Sports2You</h3>
+                    <p>Connecting college students through sports. Create or join games and play your favorite sports with fellow students.</p>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="browse.html">Browse Games</a></li>
+                        <li><a href="availability.html">My Availability</a></li>
+                        <li><a href="create-game.html">Create Game</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="currentYear"></span> Sports2You. All rights reserved.</p>
+                <p>A Database Systems Class Project</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('show');
+        });
+
+        // Check if user is logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            const userJson = sessionStorage.getItem('user');
+            if (!userJson) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const user = JSON.parse(userJson);
+            
+            // Update user info
+            document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+            document.getElementById('userDetails').textContent = `${user.username} | ${user.email}`;
+            
+            // Load user's games
+            loadUserGames(user.player_id);
+            
+            // Load user's preferred sports
+            loadUserSports(user.player_id);
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+
+        // Load user's games
+        function loadUserGames(playerId) {
+            fetch(`get_user_games.php?playerId=${playerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('myGamesContainer');
+                    
+                    if (data.length === 0) {
+                        container.innerHTML = '<p>You haven\'t created any games yet.</p>';
+                        return;
+                    }
+                    
+                    let html = '<table class="table">';
+                    html += `
+                        <thead>
+                            <tr>
+                                <th>Sport</th>
+                                <th>Location</th>
+                                <th>Date & Time</th>
+                                <th>Skill Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+                    
+                    data.forEach(game => {
+                        const gameDate = new Date(game.game_time);
+                        const formattedDate = gameDate.toLocaleString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                        });
+                        
+                        html += `
+                            <tr>
+                                <td>${game.sport_name}</td>
+                                <td>${game.location}</td>
+                                <td>${formattedDate}</td>
+                                <td>${game.skill_level_required}</td>
+                                <td>
+                                    <a href="session.html?id=${game.game_id}" class="btn-link">View</a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('myGamesContainer').innerHTML = '<p>Error loading games. Please try again.</p>';
+                });
+        }
+
+        // Load user's preferred sports
+        function loadUserSports(playerId) {
+            fetch(`get_user_sports.php?playerId=${playerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('mySportsContainer');
+                    
+                    if (data.length === 0) {
+                        container.innerHTML = '<p>You haven\'t added any preferred sports yet.</p>';
+                        return;
+                    }
+                    
+                    let html = '<ul class="sports-list">';
+                    
+                    data.forEach(sport => {
+                        html += `
+                            <li>
+                                <span class="sport-dot"></span>
+                                ${sport.sport_name}
+                            </li>
+                        `;
+                    });
+                    
+                    html += '</ul>';
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('mySportsContainer').innerHTML = '<p>Error loading sports. Please try again.</p>';
+                });
+        }
+    </script>
+</body>
+</html>

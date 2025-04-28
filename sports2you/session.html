@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details - Sports2You</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html">
+                    <img src="logo.png" alt="Sports2You Logo" class="logo">
+                </a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span>☰</span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="browse.html">Browse Games</a></li>
+                    <li><a href="availability.html">My Availability</a></li>
+                    <li><a href="#" id="logoutBtn" class="btn btn-secondary">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="gameDetailsContainer">
+            <p class="loading">Loading game details...</p>
+        </div>
+
+        <div id="joinGameContainer" style="display: none;">
+            <div class="dashboard-card">
+                <h2 class="dashboard-card-title">Join This Game</h2>
+                
+                <div id="joinErrorMessage" class="alert alert-danger" style="display: none;"></div>
+                <div id="joinSuccessMessage" class="alert alert-success" style="display: none;"></div>
+                
+                <div id="noAvailabilityMessage" style="display: none;">
+                    <p>You need to add your availability before you can join this game.</p>
+                    <a href="availability.html" class="btn btn-primary">Add Availability</a>
+                </div>
+                
+                <div id="joinFormContainer" style="display: none;">
+                    <p>Select one of your availabilities that works for this game:</p>
+                    
+                    <div class="form-group">
+                        <select id="availabilitySelect" class="form-control">
+                            <option value="">Select an availability</option>
+                            <!-- Availabilities will be loaded dynamically -->
+                        </select>
+                    </div>
+                    
+                    <button id="joinGameBtn" class="btn btn-primary">Join Game</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Sports2You</h3>
+                    <p>Connecting college students through sports. Create or join games and play your favorite sports with fellow students.</p>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="browse.html">Browse Games</a></li>
+                        <li><a href="availability.html">My Availability</a></li>
+                        <li><a href="create-game.html">Create Game</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="currentYear"></span> Sports2You. All rights reserved.</p>
+                <p>A Database Systems Class Project</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('show');
+        });
+
+        // Get game ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+        
+        // Check if user is logged in and game ID is provided
+        let userId;
+        let isCreator = false;
+        window.addEventListener('DOMContentLoaded', function() {
+            const userJson = sessionStorage.getItem('user');
+            if (!userJson) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            if (!gameId) {
+                window.location.href = 'browse.html';
+                return;
+            }
+            
+            const user = JSON.parse(userJson);
+            userId = user.player_id;
+            
+            // Load game details
+            loadGameDetails();
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+
+        // Load game details
+        function loadGameDetails() {
+            fetch(`get_game_details.php?gameId=${gameId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('gameDetailsContainer').innerHTML = `
+                            <div class="alert alert-danger">
+                                <p>${data.error}</p>
+                                <a href="browse.html" class="btn btn-primary">Back to Browse</a>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const game = data.game;
+                    const players = data.players;
+                    
+                    // Check if user is the creator
+                    isCreator = game.creator_id == userId;
+                    
+                    // Format date
+                    const gameDate = new Date(game.game_time);
+                    const formattedDate = gameDate.toLocaleString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    });
+                    
+                    // Build game details HTML
+                    let html = `
+                        <div class="dashboard-card">
+                            <div class="session-header">
+                                <div>
+                                    <h1 class="page-title">${game.sport_name} Session</h1>
+                                    <p>Created by ${game.first_name} ${game.last_name}</p>
+                                </div>
+                    `;
+                    
+                    // Add delete button if user is creator
+                    if (isCreator) {
+                        html += `
+                            <div>
+                                <button id="deleteGameBtn" class="btn btn-danger">Delete Game</button>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                            </div>
+                            
+                            <div class="session-details">
+                                <div class="session-info">
+                                    <h2>Details</h2>
+                                    <ul class="details-list">
+                                        <li><span>Date & Time:</span> ${formattedDate}</li>
+                                        <li><span>Location:</span> ${game.location}</li>
+                                        <li><span>Skill Level:</span> ${game.skill_level_required}</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="session-players">
+                                    <h2>Players</h2>
+                    `;
+                    
+                    if (players.length === 0) {
+                        html += `<p>No players have joined yet.</p>`;
+                    } else {
+                        html += `<ul class="players-list">`;
+                        
+                        players.forEach(player => {
+                            html += `
+                                <li>
+                                    <span class="player-dot"></span>
+                                    ${player.first_name} ${player.last_name}
+                                    ${player.player_id == game.creator_id ? '<span class="creator-badge">Creator</span>' : ''}
+                                </li>
+                            `;
+                        });
+                        
+                        html += `</ul>`;
+                    }
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('gameDetailsContainer').innerHTML = html;
+                    
+                    // Add event listener to delete button if user is creator
+                    if (isCreator) {
+                        document.getElementById('deleteGameBtn').addEventListener('click', handleDeleteGame);
+                    } else {
+                        // Show join game section if user is not the creator
+                        document.getElementById('joinGameContainer').style.display = 'block';
+                        
+                        // Load user's availabilities
+                        loadUserAvailabilities();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('gameDetailsContainer').innerHTML = `
+                        <div class="alert alert-danger">
+                            <p>Error loading game details. Please try again.</p>
+                            <a href="browse.html" class="btn btn-primary">Back to Browse</a>
+                        </div>
+                    `;
+                });
+        }
+
+        // Load user's availabilities
+        function loadUserAvailabilities() {
+            fetch(`get_availabilities.php?playerId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        // User has no availabilities
+                        document.getElementById('noAvailabilityMessage').style.display = 'block';
+                        document.getElementById('joinFormContainer').style.display = 'none';
+                    } else {
+                        // User has availabilities
+                        document.getElementById('noAvailabilityMessage').style.display = 'none';
+                        document.getElementById('joinFormContainer').style.display = 'block';
+                        
+                        // Populate availability select
+                        const availabilitySelect = document.getElementById('availabilitySelect');
+                        
+                        data.forEach(availability => {
+                            const date = new Date(availability.day_availability);
+                            const formattedDate = date.toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric'
+                            });
+                            
+                            const startTime = availability.start_availability.substring(0, 5);
+                            const endTime = availability.end_availability.substring(0, 5);
+                            
+                            const option = document.createElement('option');
+                            option.value = availability.availability_id;
+                            option.textContent = `${formattedDate} from ${formatTime(startTime)} to ${formatTime(endTime)}`;
+                            availabilitySelect.appendChild(option);
+                        });
+                        
+                        // Add event listener to join button
+                        document.getElementById('joinGameBtn').addEventListener('click', handleJoinGame);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('joinErrorMessage').textContent = 'Error loading availabilities. Please try again.';
+                    document.getElementById('joinErrorMessage').style.display = 'block';
+                });
+        }
+
+        // Format time to 12-hour format
+        function formatTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes} ${ampm}`;
+        }
+
+        // Handle join game button click
+        function handleJoinGame() {
+            const availabilityId = document.getElementById('availabilitySelect').value;
+            
+            if (!availabilityId) {
+                document.getElementById('joinErrorMessage').textContent = 'Please select an availability';
+                document.getElementById('joinErrorMessage').style.display = 'block';
+                document.getElementById('joinSuccessMessage').style.display = 'none';
+                return;
+            }
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('gameId', gameId);
+            formData.append('availabilityId', availabilityId);
+            
+            // Send join game request
+            fetch('join_game.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    document.getElementById('joinSuccessMessage').textContent = 'Successfully joined the game!';
+                    document.getElementById('joinSuccessMessage').style.display = 'block';
+                    document.getElementById('joinErrorMessage').style.display = 'none';
+                    
+                    // Disable join button
+                    document.getElementById('joinGameBtn').disabled = true;
+                    
+                    // Reload game details after a short delay
+                    setTimeout(() => {
+                        loadGameDetails();
+                    }, 1500);
+                } else {
+                    // Show error message
+                    document.getElementById('joinErrorMessage').textContent = data.message;
+                    document.getElementById('joinErrorMessage').style.display = 'block';
+                    document.getElementById('joinSuccessMessage').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('joinErrorMessage').textContent = 'An error occurred. Please try again.';
+                document.getElementById('joinErrorMessage').style.display = 'block';
+                document.getElementById('joinSuccessMessage').style.display = 'none';
+            });
+        }
+
+        // Handle delete game button click
+        function handleDeleteGame() {
+            if (confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
+                // Create form data
+                const formData = new FormData();
+                formData.append('gameId', gameId);
+                
+                // Send delete game request
+                fetch('delete_game.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to dashboard
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        alert('Failed to delete game: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

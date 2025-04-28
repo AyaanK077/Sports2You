@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports2You - Find Local Sports Games</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html">
+                    <img src="logo.png" alt="Sports2You Logo" class="logo">
+                </a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span>☰</span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="login.html" class="btn btn-secondary">Login</a></li>
+                    <li><a href="signup.html" class="btn btn-primary">Sign Up</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Find Sports Games on Campus</h1>
+                    <p>Connect with fellow students, create or join games, and play your favorite sports.</p>
+                    <div class="hero-buttons">
+                        <a href="signup.html" class="btn btn-primary">Sign Up</a>
+                        <a href="login.html" class="btn btn-secondary">Log In</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="logo.png" alt="Sports2You Logo">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-number">1</div>
+                    <h3>Create an Account</h3>
+                    <p>Sign up with your university email and set your sports preferences.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">2</div>
+                    <h3>Set Your Availability</h3>
+                    <p>Let others know when you're free to play.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">3</div>
+                    <h3>Join or Create Games</h3>
+                    <p>Find existing games or create your own and invite others.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="sports">
+        <div class="container">
+            <h2 class="section-title">Popular Sports</h2>
+            <div class="sports-grid">
+                <div class="sport-card">
+                    <h3>Basketball</h3>
+                </div>
+                <div class="sport-card">
+                    <h3>Soccer</h3>
+                </div>
+                <div class="sport-card">
+                    <h3>Tennis</h3>
+                </div>
+                <div class="sport-card">
+                    <h3>Volleyball</h3>
+                </div>
+                <div class="sport-card">
+                    <h3>Football</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Sports2You</h3>
+                    <p>Connecting college students through sports. Create or join games and play your favorite sports with fellow students.</p>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="login.html">Login</a></li>
+                        <li><a href="signup.html">Sign Up</a></li>
+                        <li><a href="browse.html">Browse Games</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="currentYear"></span> Sports2You. All rights reserved.</p>
+                <p>A Database Systems Class Project</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('show');
+        });
+    </script>
+</body>
+</html>
