@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Availability - Sports2You</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html">
+                    <img src="logo.png" alt="Sports2You Logo" class="logo">
+                </a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span>☰</span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="browse.html">Browse Games</a></li>
+                    <li><a href="availability.html" class="active">My Availability</a></li>
+                    <li><a href="#" id="logoutBtn" class="btn btn-secondary">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="page-title">Manage Your Availability</h1>
+
+        <div class="dashboard-card">
+            <h2 class="dashboard-card-title">Add New Availability</h2>
+            
+            <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+            <div id="successMessage" class="alert alert-success" style="display: none;"></div>
+            
+            <form id="availabilityForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dayAvailability">Date</label>
+                        <input type="date" id="dayAvailability" name="dayAvailability" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="startAvailability">Start Time</label>
+                        <input type="time" id="startAvailability" name="startAvailability" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endAvailability">End Time</label>
+                        <input type="time" id="endAvailability" name="endAvailability" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">Add Availability</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="dashboard-card">
+            <h2 class="dashboard-card-title">Your Availabilities</h2>
+            
+            <div id="availabilitiesContainer">
+                <p class="loading">Loading your availabilities...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Sports2You</h3>
+                    <p>Connecting college students through sports. Create or join games and play your favorite sports with fellow students.</p>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="browse.html">Browse Games</a></li>
+                        <li><a href="availability.html">My Availability</a></li>
+                        <li><a href="create-game.html">Create Game</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="currentYear"></span> Sports2You. All rights reserved.</p>
+                <p>A Database Systems Class Project</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('show');
+        });
+
+        // Check if user is logged in
+        let userId;
+        window.addEventListener('DOMContentLoaded', function() {
+            const userJson = sessionStorage.getItem('user');
+            if (!userJson) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const user = JSON.parse(userJson);
+            userId = user.player_id;
+            
+            // Load user's availabilities
+            loadAvailabilities();
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+
+        // Load availabilities
+        function loadAvailabilities() {
+            fetch(`get_availabilities.php?playerId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('availabilitiesContainer');
+                    
+                    if (data.length === 0) {
+                        container.innerHTML = '<p>You haven\'t added any availabilities yet.</p>';
+                        return;
+                    }
+                    
+                    let html = '<table class="table">';
+                    html += `
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+                    
+                    data.forEach(availability => {
+                        const date = new Date(availability.day_availability);
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                        });
+                        
+                        const startTime = availability.start_availability.substring(0, 5);
+                        const endTime = availability.end_availability.substring(0, 5);
+                        
+                        html += `
+                            <tr>
+                                <td>${formattedDate}</td>
+                                <td>${formatTime(startTime)}</td>
+                                <td>${formatTime(endTime)}</td>
+                                <td>
+                                    <button class="btn-link edit-btn" data-id="${availability.availability_id}" 
+                                        data-date="${availability.day_availability.split('T')[
+                                        data-date="${availability.day_availability.split('T')[0]}" 
+                                        data-start="${startTime}" 
+                                        data-end="${endTime}">Edit</button>
+                                    <button class="btn-link delete-btn" data-id="${availability.availability_id}">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                    
+                    // Add event listeners to edit and delete buttons
+                    document.querySelectorAll('.edit-btn').forEach(button => {
+                        button.addEventListener('click', handleEdit);
+                    });
+                    
+                    document.querySelectorAll('.delete-btn').forEach(button => {
+                        button.addEventListener('click', handleDelete);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('availabilitiesContainer').innerHTML = '<p>Error loading availabilities. Please try again.</p>';
+                });
+        }
+
+        // Format time to 12-hour format
+        function formatTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes} ${ampm}`;
+        }
+
+        // Handle edit button click
+        function handleEdit(e) {
+            const id = e.target.dataset.id;
+            const date = e.target.dataset.date;
+            const start = e.target.dataset.start;
+            const end = e.target.dataset.end;
+            
+            // Set form values
+            document.getElementById('dayAvailability').value = date;
+            document.getElementById('startAvailability').value = start;
+            document.getElementById('endAvailability').value = end;
+            
+            // Change form mode to edit
+            document.getElementById('submitBtn').textContent = 'Update Availability';
+            document.getElementById('submitBtn').dataset.mode = 'edit';
+            document.getElementById('submitBtn').dataset.id = id;
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            
+            // Scroll to form
+            document.querySelector('.dashboard-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Handle delete button click
+        function handleDelete(e) {
+            const id = e.target.dataset.id;
+            
+            if (confirm('Are you sure you want to delete this availability?')) {
+                // Send delete request
+                const formData = new FormData();
+                formData.append('id', id);
+                
+                fetch('delete_availability.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        document.getElementById('successMessage').textContent = 'Availability deleted successfully';
+                        document.getElementById('successMessage').style.display = 'block';
+                        document.getElementById('errorMessage').style.display = 'none';
+                        
+                        // Reload availabilities
+                        loadAvailabilities();
+                    } else {
+                        // Show error message
+                        document.getElementById('errorMessage').textContent = data.message;
+                        document.getElementById('errorMessage').style.display = 'block';
+                        document.getElementById('successMessage').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                });
+            }
+        }
+
+        // Handle cancel edit button click
+        document.getElementById('cancelEditBtn').addEventListener('click', function() {
+            // Reset form
+            document.getElementById('availabilityForm').reset();
+            document.getElementById('submitBtn').textContent = 'Add Availability';
+            document.getElementById('submitBtn').dataset.mode = 'add';
+            delete document.getElementById('submitBtn').dataset.id;
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        });
+
+        // Handle form submission
+        document.getElementById('availabilityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const dayAvailability = document.getElementById('dayAvailability').value;
+            const startAvailability = document.getElementById('startAvailability').value;
+            const endAvailability = document.getElementById('endAvailability').value;
+            
+            // Validate times
+            if (startAvailability >= endAvailability) {
+                document.getElementById('errorMessage').textContent = 'End time must be after start time';
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'none';
+                return;
+            }
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('playerId', userId);
+            formData.append('dayAvailability', dayAvailability);
+            formData.append('startAvailability', startAvailability);
+            formData.append('endAvailability', endAvailability);
+            
+            const mode = document.getElementById('submitBtn').dataset.mode || 'add';
+            
+            if (mode === 'edit') {
+                // Add availability ID for update
+                formData.append('id', document.getElementById('submitBtn').dataset.id);
+                
+                // Send update request
+                fetch('update_availability.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        document.getElementById('successMessage').textContent = 'Availability updated successfully';
+                        document.getElementById('successMessage').style.display = 'block';
+                        document.getElementById('errorMessage').style.display = 'none';
+                        
+                        // Reset form
+                        document.getElementById('availabilityForm').reset();
+                        document.getElementById('submitBtn').textContent = 'Add Availability';
+                        document.getElementById('submitBtn').dataset.mode = 'add';
+                        delete document.getElementById('submitBtn').dataset.id;
+                        document.getElementById('cancelEditBtn').style.display = 'none';
+                        
+                        // Reload availabilities
+                        loadAvailabilities();
+                    } else {
+                        // Show error message
+                        document.getElementById('errorMessage').textContent = data.message;
+                        document.getElementById('errorMessage').style.display = 'block';
+                        document.getElementById('successMessage').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                });
+            } else {
+                // Send add request
+                fetch('add_availability.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        document.getElementById('successMessage').textContent = 'Availability added successfully';
+                        document.getElementById('successMessage').style.display = 'block';
+                        document.getElementById('errorMessage').style.display = 'none';
+                        
+                        // Reset form
+                        document.getElementById('availabilityForm').reset();
+                        
+                        // Reload availabilities
+                        loadAvailabilities();
+                    } else {
+                        // Show error message
+                        document.getElementById('errorMessage').textContent = data.message;
+                        document.getElementById('errorMessage').style.display = 'block';
+                        document.getElementById('successMessage').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
